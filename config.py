@@ -1,6 +1,8 @@
 import re, os, time
+from dotenv import load_dotenv
 id_pattern = re.compile(r'^.\d+$') 
 
+load_dotenv()
 class Config(object):
     # pyro client config
     API_ID    = os.environ.get("API_ID", "")
