@@ -19,7 +19,9 @@ class Config(object):
     ADMIN       = [int(admin) if id_pattern.search(admin) else admin for admin in os.environ.get('ADMIN', '').split()]
     FORCE_SUB   = os.environ.get("FORCE_SUB", "") 
     LOG_CHANNEL = int(os.environ.get("LOG_CHANNEL", ""))
-    
+
+    # Image For User Is not In premium
+    Preimg = os.environ.get("Preimg", "")
     # wes response configuration     
     WEBHOOK = bool(os.environ.get("WEBHOOK", "True"))
 
@@ -89,6 +91,10 @@ If You Like My Bots & Projects, You Can 🎁 Donate Me Any Amount From 10 Rs Upt
     HELP_TXT = """<b>Hey</b> {}
     
 Here Is The Help For My Commands."""
+    
+    Pre_msg = """<b>{}
+    We Are Not Allowed To Use This Bot❌
+    """
 
 
 
