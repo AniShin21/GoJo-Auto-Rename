@@ -21,7 +21,7 @@ class Config(object):
     LOG_CHANNEL = int(os.environ.get("LOG_CHANNEL", ""))
 
     # Image For User Is not In premium
-    Preimg = os.environ.get("Preimg", "")
+    Pre_img = os.environ.get("Preimg", "")
     # wes response configuration     
     WEBHOOK = bool(os.environ.get("WEBHOOK", "True"))
 
