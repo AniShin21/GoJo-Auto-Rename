@@ -67,6 +67,7 @@ async def not_premium(client, message):
         reply_markup=InlineKeyboardMarkup(buttons),
         quote=True,
         disable_web_page_preview=True
+    )
         
     
 @Client.on_callback_query()
