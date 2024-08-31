@@ -80,16 +80,17 @@ async def remove_premium(client, message):
     await message.reply_text(f"Removed premium status for user ID {user_id}.", quote=True)
 
 # Function to notify users when their premium expires
-async def check_expired_premium(client):
-    premium_users = await madflixbotz.get_all_premium_users()
-    for user in premium_users:
-        if user['expiry_date'] <= datetime.now():
-            await client.send_message(user['user_id'], "Your premium membership has expired. Please renew to continue enjoying premium features.")
-            await madflixbotz.remove_premium_user(user['user_id'])
+async def check_expired_premium():
+    async with Client(Config.SESSION_NAME, api_id=Config.API_ID, api_hash=Config.API_HASH) as client:
+        premium_users = await madflixbotz.get_all_premium_users()
+        for user in premium_users:
+            if user['expiry_date'] <= datetime.now():
+                await client.send_message(user['user_id'], "Your premium membership has expired. Please renew to continue enjoying premium features.")
+                await madflixbotz.remove_premium_user(user['user_id'])
 
 # Run the expiration check periodically (e.g., every hour)
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 scheduler = AsyncIOScheduler()
-scheduler.add_job(check_expired_premium, 'interval', hours=1, args=[client])
+scheduler.add_job(check_expired_premium, 'interval', hours=1)
 scheduler.start()
