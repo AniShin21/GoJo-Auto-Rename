@@ -5,7 +5,25 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ForceRepl
 from helper.database import madflixbotz
 from config import Config, Txt  
 
-@Client.on_message(filters.private & filters.command("start"))
+async def is_premium(_, client, message):
+    # Ensure the user is added to the database
+    await madflixbotz.add_user(client, message)
+    
+    # Get the user's ID
+    user_id = message.from_user.id
+    
+    # Check if the user is a premium user
+    try:
+        is_premium_user = await madflixbotz.is_premium(user_id)
+        if is_premium_user:
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(f"Error checking premium status: {e}")
+        return False
+        
+@Client.on_message(filters.private & filters.command("start") & filters.create(is_premium))
 async def start(client, message):
     user = message.from_user
     await madflixbotz.add_user(client, message)                
@@ -21,7 +39,11 @@ async def start(client, message):
     if Config.START_PIC:
         await message.reply_photo(Config.START_PIC, caption=Txt.START_TXT.format(user.mention), reply_markup=button)       
     else:
-        await message.reply_text(text=Txt.START_TXT.format(user.mention), reply_markup=button, disable_web_page_preview=True)   
+        await message.reply_text(text=Txt.START_TXT.format(user.mention), reply_markup=button, disable_web_page_preview=True)
+
+@Client.on_message(filters.command('start') & filters.private)
+async def not_premium(client, message):
+button = 
 
 @Client.on_callback_query()
 async def cb_handler(client, query: CallbackQuery):
