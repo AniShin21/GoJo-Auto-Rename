@@ -18,6 +18,13 @@ async def is_premium(_, client, message):
         if is_premium_user:
             return True
         else:
+            await message.reply_text(
+                "❌ **Access Denied** ❌\n\n"
+                "🚫 You are not a premium user.\n\n"
+                "💎 **Unlock premium features now!** 💎",
+                quote=True,
+                parse_mode="markdown"
+            )
             return False
     except Exception as e:
         print(f"Error checking premium status: {e}")
