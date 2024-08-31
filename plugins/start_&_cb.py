@@ -5,6 +5,24 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ForceRepl
 from helper.database import madflixbotz
 from config import Config, Txt  
 
+async def is_premium(_, client, message):
+    # Ensure the user is added to the database
+    await madflixbotz.add_user(client, message)
+    
+    # Get the user's ID
+    user_id = message.from_user.id
+    
+    # Check if the user is a premium user
+    try:
+        is_premium_user = await madflixbotz.is_premium(user_id)
+        if is_premium_user:
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(f"Error checking premium status: {e}")
+        return False
+        
 @Client.on_message(filters.private & filters.command("start"))
 async def start(client, message):
     user = message.from_user
