@@ -5,20 +5,20 @@ id_pattern = re.compile(r'^.\d+$')
 load_dotenv()
 class Config(object):
     # pyro client config
-    API_ID    = os.environ.get("API_ID", "")
-    API_HASH  = os.environ.get("API_HASH", "")
-    BOT_TOKEN = os.environ.get("BOT_TOKEN", "") 
+    API_ID    = os.environ.get("API_ID", "15646796")
+    API_HASH  = os.environ.get("API_HASH", "08bdb932cf2815a46b2a5f17cf245bfe")
+    BOT_TOKEN = os.environ.get("BOT_TOKEN", "7335875303:AAFj8SHBn96SaYPUKF6keAQBeESVzroOM5A") 
 
     # database config
-    DB_NAME = os.environ.get("DB_NAME","madflixbotz")     
-    DB_URL  = os.environ.get("DB_URL","")
+    DB_NAME = os.environ.get("DB_NAME","FileBot")     
+    DB_URL  = os.environ.get("DB_URL","mongodb+srv://minecraft2727k:daksh2727me@filebot.47tgnlr.mongodb.net/?retryWrites=true&w=majority&appName=FileBot")
  
     # other configs
     BOT_UPTIME  = time.time()
     START_PIC   = os.environ.get("START_PIC", "https://graph.org/file/4b306f4b15c23a8f22e58.jpg")
-    ADMIN       = [int(admin) if id_pattern.search(admin) else admin for admin in os.environ.get('ADMIN', '').split()]
-    FORCE_SUB   = os.environ.get("FORCE_SUB", "") 
-    LOG_CHANNEL = int(os.environ.get("LOG_CHANNEL", ""))
+    ADMIN       = [int(admin) if id_pattern.search(admin) else admin for admin in os.environ.get('ADMIN', '6450266465').split()]
+    FORCE_SUB   = os.environ.get("FORCE_SUB", "-1002068536544") 
+    LOG_CHANNEL = int(os.environ.get("LOG_CHANNEL", "-1002215698090"))
     
     # wes response configuration     
     WEBHOOK = bool(os.environ.get("WEBHOOK", "True"))
