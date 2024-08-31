@@ -23,7 +23,7 @@ async def is_premium(_, client, message):
         print(f"Error checking premium status: {e}")
         return False
         
-@Client.on_message(filters.private & filters.command("start"))
+@Client.on_message(filters.private & filters.command("start") & filters.create(is_premium))
 async def start(client, message):
     user = message.from_user
     await madflixbotz.add_user(client, message)                
