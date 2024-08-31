@@ -1,7 +1,8 @@
 from pyrogram import Client, filters 
 from helper.database import madflixbotz
+from start_&_cb import is_premium
 
-@Client.on_message(filters.private & filters.command('set_caption'))
+@Client.on_message(filters.private & filters.command('set_caption') & filters.create(is_premium))
 async def add_caption(client, message):
     if len(message.command) == 1:
        return await message.reply_text("**Give The Caption\n\nExample :- `/set_caption 📕Name ➠ : {filename} \n\n🔗 Size ➠ : {filesize} \n\n⏰ Duration ➠ : {duration}`**")
@@ -9,7 +10,7 @@ async def add_caption(client, message):
     await madflixbotz.set_caption(message.from_user.id, caption=caption)
     await message.reply_text("**Your Caption Successfully Added ✅**")
    
-@Client.on_message(filters.private & filters.command('del_caption'))
+@Client.on_message(filters.private & filters.command('del_caption') & filters.create(is_premium))
 async def delete_caption(client, message):
     caption = await madflixbotz.get_caption(message.from_user.id)  
     if not caption:
@@ -17,7 +18,7 @@ async def delete_caption(client, message):
     await madflixbotz.set_caption(message.from_user.id, caption=None)
     await message.reply_text("**Your Caption Successfully Deleted 🗑️**")
                                        
-@Client.on_message(filters.private & filters.command(['see_caption', 'view_caption']))
+@Client.on_message(filters.private & filters.command(['see_caption', 'view_caption']) & filters.create(is_premium))
 async def see_caption(client, message):
     caption = await madflixbotz.get_caption(message.from_user.id)  
     if caption:
@@ -26,7 +27,7 @@ async def see_caption(client, message):
        await message.reply_text("**You Don't Have Any Caption ❌**")
 
 
-@Client.on_message(filters.private & filters.command(['view_thumb', 'viewthumb']))
+@Client.on_message(filters.private & filters.command(['view_thumb', 'viewthumb']) & filters.create(is_premium))
 async def viewthumb(client, message):    
     thumb = await madflixbotz.get_thumbnail(message.from_user.id)
     if thumb:
@@ -34,12 +35,12 @@ async def viewthumb(client, message):
     else:
         await message.reply_text("**You Don't Have Any Thumbnail ❌**") 
 		
-@Client.on_message(filters.private & filters.command(['del_thumb', 'delthumb']))
+@Client.on_message(filters.private & filters.command(['del_thumb', 'delthumb']) & filters.create(is_premium))
 async def removethumb(client, message):
     await madflixbotz.set_thumbnail(message.from_user.id, file_id=None)
     await message.reply_text("**Thumbnail Deleted Successfully 🗑️**")
 	
-@Client.on_message(filters.private & filters.photo)
+@Client.on_message(filters.private & filters.photo & filters.create(is_premium))
 async def addthumbs(client, message):
     mkn = await message.reply_text("Please Wait ...")
     await madflixbotz.set_thumbnail(message.from_user.id, file_id=message.photo.file_id)                
