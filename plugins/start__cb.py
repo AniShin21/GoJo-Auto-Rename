@@ -47,28 +47,6 @@ async def start(client, message):
         await message.reply_photo(Config.START_PIC, caption=Txt.START_TXT.format(user.mention), reply_markup=button)       
     else:
         await message.reply_text(text=Txt.START_TXT.format(user.mention), reply_markup=button, disable_web_page_preview=True)
-
-@Client.on_message(filters.command('start') & filters.private)
-async def not_premium(client, message):
-    buttons = [
-        [
-            InlineKeyboardButton(text="🍂Buy Premium🍂", url="tg://user?id=1768198143")
-        ]
-    ]
-    await message.reply_photo(
-        Config.Pre_img,
-        caption=Txt.Pre_msg.format(
-            first=message.from_user.first_name,
-            last=message.from_user.last_name,
-            username=None if not message.from_user.username else '@' + message.from_user.username,
-            mention=message.from_user.mention,
-            id=message.from_user.id
-        ),
-        reply_markup=InlineKeyboardMarkup(buttons),
-        quote=True,
-        disable_web_page_preview=True
-    )
-        
     
 @Client.on_callback_query()
 async def cb_handler(client, query: CallbackQuery):
