@@ -14,7 +14,7 @@ async def is_premium(_, client, message):
     
     # Check if the user is a premium user
     try:
-        is_premium_user = await madflixbotz.is_premium(user_id)
+        is_premium_user = await madflixbotz.is_premium_user_exist(user_id)  # Use the correct method name
         if is_premium_user:
             return True
         else:
