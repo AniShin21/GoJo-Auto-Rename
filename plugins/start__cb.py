@@ -52,7 +52,7 @@ async def start(client, message):
 async def not_premium(client, message):
     buttons = [
         [
-            InlineKeyboardButtons(text="🍂Buy Premium🍂", url="tg://user?id=1768198143")
+            InlineKeyboardButton(text="🍂Buy Premium🍂", url="tg://user?id=1768198143")
         ]
     ]
     await message.reply_photo(
