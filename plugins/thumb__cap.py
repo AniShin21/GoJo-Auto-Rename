@@ -1,6 +1,6 @@
 from pyrogram import Client, filters 
 from helper.database import madflixbotz
-from .start_&_cb import is_premium
+from .start__cb import is_premium
 
 @Client.on_message(filters.private & filters.command('set_caption') & filters.create(is_premium))
 async def add_caption(client, message):
