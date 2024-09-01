@@ -1,8 +1,12 @@
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from datetime import datetime, timedelta
+import pytz  # Import timezone handling
 from helper.database import madflixbotz  # Import the database instance
 from config import Config
+
+# Get the timezone for Delhi, India
+IST = pytz.timezone('Asia/Kolkata')
 
 @Client.on_message(filters.private & filters.user(Config.ADMIN) & filters.command(["addpremium"]))
 async def add_premium(client, message):
@@ -21,33 +25,33 @@ async def add_premium(client, message):
 # Define callback queries for each plan
 @Client.on_callback_query(filters.regex('premium_1min'))
 async def premium_1min(client, query: CallbackQuery):
-    await add_premium_user(client, query, timedelta(minutes=1), "1 Min", 0)
+    await add_premium_user(client, query, timedelta(minutes=1), "1 Min")
 
 @Client.on_callback_query(filters.regex('premium_1day'))
 async def premium_1day(client, query: CallbackQuery):
-    await add_premium_user(client, query, timedelta(days=1), "1 Day", 10)
+    await add_premium_user(client, query, timedelta(days=1), "1 Day")
 
 @Client.on_callback_query(filters.regex('premium_1month'))
 async def premium_1month(client, query: CallbackQuery):
-    await add_premium_user(client, query, timedelta(days=30), "1 Month", 90)
+    await add_premium_user(client, query, timedelta(days=30), "1 Month")
 
 @Client.on_callback_query(filters.regex('premium_3months'))
 async def premium_3months(client, query: CallbackQuery):
-    await add_premium_user(client, query, timedelta(days=90), "3 Months", 150)
+    await add_premium_user(client, query, timedelta(days=90), "3 Months")
 
 @Client.on_callback_query(filters.regex('premium_6months'))
 async def premium_6months(client, query: CallbackQuery):
-    await add_premium_user(client, query, timedelta(days=180), "6 Months", 350)
+    await add_premium_user(client, query, timedelta(days=180), "6 Months")
 
 @Client.on_callback_query(filters.regex('premium_1year'))
 async def premium_1year(client, query: CallbackQuery):
-    await add_premium_user(client, query, timedelta(days=365), "1 Year", 500)
+    await add_premium_user(client, query, timedelta(days=365), "1 Year")
 
 # Function to add a premium user
-async def add_premium_user(client, query: CallbackQuery, duration, plan_name, price):
+async def add_premium_user(client, query: CallbackQuery, duration, plan_name):
     user_id = query.message.reply_to_message.text.split("/addpremium")[1].strip()
     
-    expiry_date = datetime.now() + duration
+    expiry_date = datetime.now(IST) + duration
     
     # Update the database with premium info
     await madflixbotz.add_premium_user(int(user_id), expiry_date, plan_name)
@@ -56,9 +60,11 @@ async def add_premium_user(client, query: CallbackQuery, duration, plan_name, pr
     await query.message.edit(f"Added {plan_name} Premium for {user_id} (Expires on: {expiry_date.strftime('%Y-%m-%d %H:%M:%S')})")
     
     # Notify the user
-    await client.send_message(user_id, 
-                              f"Hey!\n\nYou have been upgraded to <b>{plan_name} Premium</b>.\n\nYour subscription expires on: {expiry_date.strftime('%Y-%m-%d %H:%M:%S')}.",
-                              parse_mode="html")
+    await client.send_message(
+        chat_id=user_id,
+        text=f"Hey!\n\nYou have been upgraded to <b>{plan_name} Premium</b>.\n\nYour subscription expires on: {expiry_date.strftime('%Y-%m-%d %H:%M:%S')}.",
+        parse_mode="html"
+    )
 
 # Command to check all premium users
 @Client.on_message(filters.private & filters.user(Config.ADMIN) & filters.command(["checkpremium"]))
@@ -84,7 +90,7 @@ async def check_expired_premium():
     async with Client(Config.SESSION_NAME, api_id=Config.API_ID, api_hash=Config.API_HASH) as client:
         premium_users = await madflixbotz.get_all_premium_users()
         for user in premium_users:
-            if user['expiry_date'] <= datetime.now():
+            if user['expiry_date'] <= datetime.now(IST):
                 await client.send_message(user['user_id'], "Your premium membership has expired. Please renew to continue enjoying premium features.")
                 await madflixbotz.remove_premium_user(user['user_id'])
 
