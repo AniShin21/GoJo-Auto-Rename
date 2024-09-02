@@ -47,7 +47,23 @@ async def start(client, message):
         await message.reply_photo(Config.START_PIC, caption=Txt.START_TXT.format(user.mention), reply_markup=button)       
     else:
         await message.reply_text(text=Txt.START_TXT.format(user.mention), reply_markup=button, disable_web_page_preview=True)
-    
+
+@Client.on_message(filters.private & filters.command("start"))
+async def not_premium(client, message):
+    user = message.from_user
+    await madflixbotz.add_user(client, message)
+    button = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton('Buy Premium🧧', url=f'tg://user?id={Config.OWNER_ID}')
+            ]
+        ]
+    )
+    await message.reply_text(text=Txt.Pre_msg.format(user.mention), reply_markup=button, disable_web_page_preview=True)
+
+
+
+
 @Client.on_callback_query()
 async def cb_handler(client, query: CallbackQuery):
     data = query.data 
