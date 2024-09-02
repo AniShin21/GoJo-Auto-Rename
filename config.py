@@ -20,6 +20,9 @@ class Config(object):
     FORCE_SUB   = int(os.environ.get("FORCE_SUB", ""))
     LOG_CHANNEL = int(os.environ.get("LOG_CHANNEL", ""))
 
+    # Owner Id 
+    OWNER_ID = os.environ.get("OWNER_ID", "")
+
     # Image For User Is not In premium
     Pre_img = os.environ.get("Preimg", "https://graph.org/file/4b306f4b15c23a8f22e58.jpg")
     # wes response configuration     
@@ -92,8 +95,8 @@ If You Like My Bots & Projects, You Can 🎁 Donate Me Any Amount From 10 Rs Upt
     
 Here Is The Help For My Commands."""
     
-    Pre_msg = """<b>{}
-    We Are Not Allowed To Use This Bot❌
+    Pre_msg = """<b>Sorry <b><i>{}</i></b>
+    You Are Not Allowed To Use This Bot❌
     """
 
 
