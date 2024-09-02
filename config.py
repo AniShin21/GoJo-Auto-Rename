@@ -21,7 +21,7 @@ class Config(object):
     LOG_CHANNEL = int(os.environ.get("LOG_CHANNEL", ""))
 
     # Owner Id 
-    OWNER_ID = os.environ.get("OWNER_ID", "")
+    OWNER_ID = os.environ.get("OWNER_ID", "6450266465")
 
     # Image For User Is not In premium
     Pre_img = os.environ.get("Preimg", "https://graph.org/file/4b306f4b15c23a8f22e58.jpg")
