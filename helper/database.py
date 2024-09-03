@@ -1,87 +1,85 @@
 import motor.motor_asyncio
+from datetime import datetime
 from config import Config
-from .utils import send_log
 
 class Database:
 
     def __init__(self, uri, database_name):
-        # Initialize the MongoDB client and connect to the specified database
         self._client = motor.motor_asyncio.AsyncIOMotorClient(uri)
-        self.madflixbotz = self._client[database_name]
-        self.col = self.madflixbotz.user
+        self.db = self._client[database_name]
+        self.user_col = self.db.user
+        self.premium_col = self.db.premium_users
 
-    def new_user(self, id):
-        # Create a new user dictionary with default values
-        return dict(
-            _id=int(id),
-            file_id=None,
-            caption=None,
-            format_template=None,
-            media_type=None  # Ensure this field is initialized as well
+    # Add a new user or update an existing user
+    async def add_user(self, user_id: int, username: str = None):
+        user_data = {
+            'user_id': user_id,
+            'username': username,
+            'joined': datetime.utcnow(),
+        }
+        await self.user_col.update_one(
+            {'user_id': user_id},
+            {'$setOnInsert': user_data},
+            upsert=True
         )
 
-    async def add_user(self, b, m):
-        u = m.from_user
-        if not await self.is_user_exist(u.id):
-            # If the user does not exist, create and insert the user into the database
-            user = self.new_user(u.id)
-            await self.col.insert_one(user)
-            await send_log(b, u)
+    # Get a user's details
+    async def get_user(self, user_id: int):
+        return await self.user_col.find_one({'user_id': user_id})
 
-    async def is_user_exist(self, id):
-        # Check if the user exists in the database
-        user = await self.col.find_one({'_id': int(id)})
-        return bool(user)
-
-    async def total_users_count(self):
-        # Count the total number of users in the database
-        count = await self.col.count_documents({})
-        return count
-
+    # Get all users
     async def get_all_users(self):
-        # Retrieve all users from the database
-        all_users = self.col.find({})
-        return all_users
+        users = []
+        async for user in self.user_col.find():
+            users.append(user)
+        return users
 
-    async def delete_user(self, user_id):
-        # Delete a user from the database by their ID
-        await self.col.delete_many({'_id': int(user_id)})
-    
-    async def set_thumbnail(self, id, file_id):
-        # Set the thumbnail (file_id) for a specific user
-        await self.col.update_one({'_id': int(id)}, {'$set': {'file_id': file_id}})
+    # Remove a user
+    async def remove_user(self, user_id: int):
+        await self.user_col.delete_one({'user_id': user_id})
 
-    async def get_thumbnail(self, id):
-        # Get the thumbnail (file_id) of a specific user
-        user = await self.col.find_one({'_id': int(id)})
-        return user.get('file_id', None)
+    # Add or update a premium user
+    async def add_premium_user(self, user_id: int, expiry_date: datetime, plan_name: str):
+        premium_data = {
+            'user_id': user_id,
+            'expiry_date': expiry_date,
+            'plan_name': plan_name
+        }
+        await self.premium_col.update_one(
+            {'user_id': user_id},
+            {'$set': premium_data},
+            upsert=True
+        )
 
-    async def set_caption(self, id, caption):
-        # Set the caption for a specific user
-        await self.col.update_one({'_id': int(id)}, {'$set': {'caption': caption}})
+    # Get a premium user's details
+    async def get_premium_user(self, user_id: int):
+        return await self.premium_col.find_one({'user_id': user_id})
 
-    async def get_caption(self, id):
-        # Get the caption of a specific user
-        user = await self.col.find_one({'_id': int(id)})
-        return user.get('caption', None)
+    # Get all premium users
+    async def get_all_premium_users(self):
+        users = []
+        async for user in self.premium_col.find():
+            users.append(user)
+        return users
 
-    async def set_format_template(self, id, format_template):
-        # Set the format template for a specific user
-        await self.col.update_one({'_id': int(id)}, {'$set': {'format_template': format_template}})
+    # Remove a premium user
+    async def remove_premium_user(self, user_id: int):
+        await self.premium_col.delete_one({'user_id': user_id})
 
-    async def get_format_template(self, id):
-        # Get the format template of a specific user
-        user = await self.col.find_one({'_id': int(id)})
-        return user.get('format_template', None)
-        
-    async def set_media_preference(self, id, media_type):
-        # Set the media preference for a specific user
-        await self.col.update_one({'_id': int(id)}, {'$set': {'media_type': media_type}})
-        
-    async def get_media_preference(self, id):
-        # Get the media preference of a specific user
-        user = await self.col.find_one({'_id': int(id)})
-        return user.get('media_type', None)
+    # Check if a user is premium
+    async def is_premium(self, user_id: int):
+        user = await self.get_premium_user(user_id)
+        if user and user['expiry_date'] > datetime.utcnow():
+            return True
+        return False
 
-# Initialize the Database instance
-madflixbotz = Database(Config.DB_URL, Config.DB_NAME)
+    # Update the expiry date for a premium user
+    async def update_premium_expiry(self, user_id: int, new_expiry_date: datetime):
+        await self.premium_col.update_one(
+            {'user_id': user_id},
+            {'$set': {'expiry_date': new_expiry_date}}
+        )
+
+# Initialize the database
+madflixbotz = Database(Config.DB_URI, Config.DB_NAME)
+
