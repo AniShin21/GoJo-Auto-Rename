@@ -81,5 +81,5 @@ class Database:
         )
 
 # Initialize the database
-madflixbotz = Database(Config.DB_URI, Config.DB_NAME)
+madflixbotz = Database(Config.DB_URL, Config.DB_NAME)
 
