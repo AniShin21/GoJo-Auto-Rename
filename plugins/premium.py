@@ -49,22 +49,25 @@ async def premium_1year(client, query: CallbackQuery):
 
 # Function to add a premium user
 async def add_premium_user(client, query: CallbackQuery, duration, plan_name):
-    user_id = query.message.reply_to_message.text.split("/addpremium")[1].strip()
-    
-    expiry_date = datetime.now(IST) + duration
-    
-    # Update the database with premium info
-    await madflixbotz.add_premium_user(int(user_id), expiry_date, plan_name)
-    
-    # Notify the admin
-    await query.message.edit(f"Added {plan_name} Premium for {user_id} (Expires on: {expiry_date.strftime('%Y-%m-%d %H:%M:%S')})")
-    
-    # Notify the user
-    await client.send_message(
-        chat_id=user_id,
-        text=f"Hey!\n\nYou have been upgraded to <b>{plan_name} Premium</b>.\n\nYour subscription expires on: {expiry_date.strftime('%Y-%m-%d %H:%M:%S')}.",
-        parse_mode="html"
-    )
+    try:
+        user_id = query.message.reply_to_message.text.split("/addpremium")[1].strip()
+        
+        expiry_date = datetime.now(IST) + duration
+        
+        # Update the database with premium info
+        await madflixbotz.add_premium_user(int(user_id), expiry_date, plan_name)
+        
+        # Notify the admin
+        await query.message.edit(f"Added {plan_name} Premium for {user_id} (Expires on: {expiry_date.strftime('%Y-%m-%d %H:%M:%S')})")
+        
+        # Notify the user
+        await client.send_message(
+            chat_id=user_id,
+            text=f"Hey!\n\nYou have been upgraded to <b>{plan_name} Premium</b>.\n\nYour subscription expires on: {expiry_date.strftime('%Y-%m-%d %H:%M:%S')}.",
+            parse_mode="html"
+        )
+    except Exception as e:
+        await query.message.edit(f"Failed to add premium for user {user_id}: {e}")
 
 # Command to check all premium users
 @Client.on_message(filters.private & filters.user(Config.ADMIN) & filters.command(["checkpremium"]))
