@@ -1,16 +1,42 @@
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from datetime import datetime, timedelta
-import pytz  # Import timezone handling
-from helper.database import madflixbotz  # Import the database instance
+import pytz
+from helper.database import madflixbotz
 from config import Config
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-# Get the timezone for Delhi, India
+# Set timezone to Delhi, India (IST)
 IST = pytz.timezone('Asia/Kolkata')
 
+# Function to handle adding premium users with a specific duration
+async def add_premium_user(client, query: CallbackQuery, duration, plan_name):
+    try:
+        # Extract user ID from the original message (sent with /addpremium)
+        user_id = query.message.reply_to_message.text.split("/addpremium")[1].strip()
+        
+        # Calculate the expiry date based on the selected plan's duration
+        expiry_date = datetime.now(IST) + duration
+        
+        # Update the database with premium information
+        await madflixbotz.add_premium_user(int(user_id), expiry_date, plan_name)
+        
+        # Notify the admin about the premium addition
+        await query.message.edit(f"Added {plan_name} Premium for User ID {user_id} (Expires on: {expiry_date.strftime('%Y-%m-%d %H:%M:%S')})")
+        
+        # Notify the user about their premium status
+        await client.send_message(
+            chat_id=user_id,
+            text=f"Hey!\n\nYou have been upgraded to <b>{plan_name} Premium</b>.\n\nYour subscription expires on: {expiry_date.strftime('%Y-%m-%d %H:%M:%S')}.",
+            parse_mode="html"
+        )
+    except Exception as e:
+        await query.message.edit(f"Failed to add premium for User ID {user_id}: {e}")
+
+# Command to initiate the premium plan selection process
 @Client.on_message(filters.private & filters.user(Config.ADMIN) & filters.command(["addpremium"]))
 async def add_premium(client, message):
-    button = InlineKeyboardMarkup([
+    buttons = InlineKeyboardMarkup([
         [InlineKeyboardButton("1 Min", callback_data="premium_1min")],
         [InlineKeyboardButton("1 Day", callback_data="premium_1day"),
          InlineKeyboardButton("1 Month", callback_data="premium_1month")],
@@ -20,9 +46,9 @@ async def add_premium(client, message):
         [InlineKeyboardButton("✖️ Cancel ✖️", callback_data="cancel")]
     ])
     
-    await message.reply_text("🦋 Select Plan To Upgrade...", quote=True, reply_markup=button)
+    await message.reply_text("🦋 Select Plan To Upgrade...", quote=True, reply_markup=buttons)
 
-# Define callback queries for each plan
+# Callback query handlers for each premium plan
 @Client.on_callback_query(filters.regex('premium_1min'))
 async def premium_1min(client, query: CallbackQuery):
     await add_premium_user(client, query, timedelta(minutes=1), "1 Min")
@@ -47,29 +73,7 @@ async def premium_6months(client, query: CallbackQuery):
 async def premium_1year(client, query: CallbackQuery):
     await add_premium_user(client, query, timedelta(days=365), "1 Year")
 
-# Function to add a premium user
-async def add_premium_user(client, query: CallbackQuery, duration, plan_name):
-    try:
-        user_id = query.message.reply_to_message.text.split("/addpremium")[1].strip()
-        
-        expiry_date = datetime.now(IST) + duration
-        
-        # Update the database with premium info
-        await madflixbotz.add_premium_user(int(user_id), expiry_date, plan_name)
-        
-        # Notify the admin
-        await query.message.edit(f"Added {plan_name} Premium for {user_id} (Expires on: {expiry_date.strftime('%Y-%m-%d %H:%M:%S')})")
-        
-        # Notify the user
-        await client.send_message(
-            chat_id=user_id,
-            text=f"Hey!\n\nYou have been upgraded to <b>{plan_name} Premium</b>.\n\nYour subscription expires on: {expiry_date.strftime('%Y-%m-%d %H:%M:%S')}.",
-            parse_mode="html"
-        )
-    except Exception as e:
-        await query.message.edit(f"Failed to add premium for user {user_id}: {e}")
-
-# Command to check all premium users
+# Command to list all premium users
 @Client.on_message(filters.private & filters.user(Config.ADMIN) & filters.command(["checkpremium"]))
 async def check_premium(client, message):
     premium_users = await madflixbotz.get_all_premium_users()
@@ -86,20 +90,18 @@ async def check_premium(client, message):
 async def remove_premium(client, message):
     user_id = message.text.split(" ", 1)[1]
     await madflixbotz.remove_premium_user(int(user_id))
-    await message.reply_text(f"Removed premium status for user ID {user_id}.", quote=True)
+    await message.reply_text(f"Removed premium status for User ID {user_id}.", quote=True)
 
-# Function to notify users when their premium expires
+# Function to check for expired premium users and notify them
 async def check_expired_premium():
-    async with Client(Config.SESSION_NAME, api_id=Config.API_ID, api_hash=Config.API_HASH) as client:
-        premium_users = await madflixbotz.get_all_premium_users()
-        for user in premium_users:
-            if user['expiry_date'] <= datetime.now(IST):
-                await client.send_message(user['user_id'], "Your premium membership has expired. Please renew to continue enjoying premium features.")
-                await madflixbotz.remove_premium_user(user['user_id'])
+    premium_users = await madflixbotz.get_all_premium_users()
+    for user in premium_users:
+        if user['expiry_date'] <= datetime.now(IST):
+            await client.send_message(user['user_id'], "Your premium membership has expired. Please renew to continue enjoying premium features.")
+            await madflixbotz.remove_premium_user(user['user_id'])
 
-# Run the expiration check periodically (e.g., every hour)
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-
+# Schedule periodic checks for expired premium users
 scheduler = AsyncIOScheduler()
 scheduler.add_job(check_expired_premium, 'interval', hours=1)
 scheduler.start()
+
