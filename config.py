@@ -17,7 +17,7 @@ class Config(object):
     BOT_UPTIME  = time.time()
     START_PIC   = os.environ.get("START_PIC", "https://graph.org/file/4b306f4b15c23a8f22e58.jpg")
     ADMIN       = [int(admin) if id_pattern.search(admin) else admin for admin in os.environ.get('ADMIN', '6450266465').split()]
-    FORCE_SUB   = int(os.environ.get("FORCE_SUB", ""))
+    FORCE_SUB   = os.environ.get("FORCE_SUB", "")
     LOG_CHANNEL = int(os.environ.get("LOG_CHANNEL", ""))
 
     # Owner Id 
