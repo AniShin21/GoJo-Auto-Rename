@@ -27,11 +27,10 @@ async def add_premium_user(client, query: CallbackQuery, duration, plan_name):
         # Notify the user about their premium status
         await client.send_message(
             chat_id=user_id,
-            text=f"Hey!\n\nYou have been upgraded to <b>{plan_name} Premium</b>.\n\nYour subscription expires on: {expiry_date.strftime('%Y-%m-%d %H:%M:%S')}.",
-            parse_mode="html"
+            text=f"Hey!\n\nYou have been upgraded to {plan_name} Premium.\n\nYour subscription expires on: {expiry_date.strftime('%Y-%m-%d %H:%M:%S')}."
         )
     except Exception as e:
-        await query.message.edit(f"Failed to add premium for User ID {user_id}: {e}")
+        await query.message.edit(f"Failed to add premium for User ID {user_id}: {str(e)}")
 
 # Command to initiate the premium plan selection process
 @Client.on_message(filters.private & filters.user(Config.ADMIN) & filters.command(["addpremium"]))
@@ -78,10 +77,10 @@ async def premium_1year(client, query: CallbackQuery):
 async def check_premium(client, message):
     premium_users = await madflixbotz.get_all_premium_users()
     if premium_users:
-        msg = "👑 <b>Premium Users:</b>\n\n"
+        msg = "👑 Premium Users:\n\n"
         for user in premium_users:
             msg += f"User ID: {user['user_id']} - Plan: {user['plan_name']} - Expires: {user['expiry_date'].strftime('%Y-%m-%d %H:%M:%S')}\n"
-        await message.reply_text(msg, parse_mode="html")
+        await message.reply_text(msg)
     else:
         await message.reply_text("No premium users found.", quote=True)
 
@@ -104,4 +103,3 @@ async def check_expired_premium():
 scheduler = AsyncIOScheduler()
 scheduler.add_job(check_expired_premium, 'interval', hours=1)
 scheduler.start()
-
