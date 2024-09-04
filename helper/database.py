@@ -15,7 +15,9 @@ class Database:
             'file_id': None,
             'caption': None,
             'format_template': None,
-            'is_premium': False  # Add is_premium flag to user data
+            'is_premium': False,
+            'premium_expiry': None,  # Add premium expiry date
+            'plan_name': None  # Add plan name
         }
 
     async def add_user(self, b, m):
@@ -69,15 +71,29 @@ class Database:
         return user.get('media_type', None)
 
     # Premium-related methods
-    async def add_premium_user(self, user_id):
-        await self.user_data.update_one({'_id': int(user_id)}, {'$set': {'is_premium': True}})
+    async def add_premium_user(self, user_id, expiry_date, plan_name):
+        await self.user_data.update_one(
+            {'_id': int(user_id)},
+            {'$set': {'is_premium': True, 'premium_expiry': expiry_date, 'plan_name': plan_name}}
+        )
 
     async def del_premium_user(self, user_id):
-        await self.user_data.update_one({'_id': int(user_id)}, {'$set': {'is_premium': False}})
+        await self.user_data.update_one(
+            {'_id': int(user_id)},
+            {'$set': {'is_premium': False, 'premium_expiry': None, 'plan_name': None}}
+        )
 
     async def is_premium_user(self, user_id):
         user = await self.user_data.find_one({'_id': int(user_id)})
         return user.get('is_premium', False)
+
+    async def get_premium_expiry(self, user_id):
+        user = await self.user_data.find_one({'_id': int(user_id)})
+        return user.get('premium_expiry', None)
+
+    async def get_plan_name(self, user_id):
+        user = await self.user_data.find_one({'_id': int(user_id)})
+        return user.get('plan_name', None)
 
     async def full_userbase(self):
         user_docs = self.user_data.find()
@@ -85,5 +101,6 @@ class Database:
         return user_ids
 
 madflixbotz = Database(Config.DB_URL, Config.DB_NAME)
+
 
 
