@@ -4,9 +4,8 @@ from datetime import datetime, timedelta
 import pytz
 from helper.database import madflixbotz
 from config import Config
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-# Set timezone to Delhi, India (IST)
+# Set timezone to IST (India Standard Time)
 IST = pytz.timezone('Asia/Kolkata')
 
 # Function to handle adding premium users with a specific duration
@@ -75,31 +74,33 @@ async def premium_1year(client, query: CallbackQuery):
 # Command to list all premium users
 @Client.on_message(filters.private & filters.user(Config.ADMIN) & filters.command(["checkpremium"]))
 async def check_premium(client, message):
-    premium_users = await madflixbotz.get_all_premium_users()
-    if premium_users:
-        msg = "👑 Premium Users:\n\n"
-        for user in premium_users:
-            msg += f"User ID: {user['user_id']} - Plan: {user['plan_name']} - Expires: {user['expiry_date'].strftime('%Y-%m-%d %H:%M:%S')}\n"
-        await message.reply_text(msg)
+    premium_users = await madflixbotz.get_all_users()  # Retrieve all users and filter premium ones
+    premium_list = ""
+    async for user in premium_users:
+        if user.get('is_premium'):
+            expiry = user.get('premium_expiry')
+            plan = user.get('plan_name', 'N/A')
+            premium_list += f"👤 User ID: `{user['_id']}`\n⏳ Plan: {plan}\n📅 Expires: {expiry.strftime('%Y-%m-%d %H:%M:%S') if expiry else 'N/A'}\n\n"
+
+    if premium_list:
+        await message.reply_text(f"👑 **Premium Users:**\n\n{premium_list}", quote=True)
     else:
         await message.reply_text("No premium users found.", quote=True)
 
 # Command to remove a premium user
 @Client.on_message(filters.private & filters.user(Config.ADMIN) & filters.command(["removepremium"]))
 async def remove_premium(client, message):
-    user_id = message.text.split(" ", 1)[1]
-    await madflixbotz.remove_premium_user(int(user_id))
-    await message.reply_text(f"Removed premium status for User ID {user_id}.", quote=True)
+    try:
+        user_id = int(message.text.split()[1])
+        await madflixbotz.del_premium_user(user_id)
+        await message.reply_text(f"Removed premium status for User ID {user_id}.", quote=True)
+    except IndexError:
+        await message.reply_text("Please provide a User ID. Usage: /removepremium <user_id>", quote=True)
+    except Exception as e:
+        await message.reply_text(f"Failed to remove premium status: {str(e)}", quote=True)
 
-# Function to check for expired premium users and notify them
-async def check_expired_premium():
-    premium_users = await madflixbotz.get_all_premium_users()
-    for user in premium_users:
-        if user['expiry_date'] <= datetime.now(IST):
-            await client.send_message(user['user_id'], "Your premium membership has expired. Please renew to continue enjoying premium features.")
-            await madflixbotz.remove_premium_user(user['user_id'])
+# Handler to cancel the operation
+@Client.on_callback_query(filters.regex('cancel'))
+async def cancel_operation(client, query: CallbackQuery):
+    await query.message.edit("Operation cancelled.", reply_markup=None)
 
-# Schedule periodic checks for expired premium users
-scheduler = AsyncIOScheduler()
-scheduler.add_job(check_expired_premium, 'interval', hours=1)
-scheduler.start()
