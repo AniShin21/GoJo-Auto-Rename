@@ -95,7 +95,7 @@ If You Like My Bots & Projects, You Can 🎁 Donate Me Any Amount From 10 Rs Upt
     
 Here Is The Help For My Commands."""
     
-    Pre_msg = """<b>Sorry <b><i>{}</i></b>
+    Pre_msg = """
     You Are Not Allowed To Use This Bot❌
     """
 
